@@ -52,10 +52,25 @@ const userSchema = new mongoose.Schema(
 
 //  Cryptage du mot de passe avec bcrypt avant l'envoi
 userSchema.pre("save", async function(next) {
-    const salt = await bcrypt.genSalt();    //bcrypt genere le salage
-    this.password = await bcrypt.hash(this.password, salt); //Ajout du cryptage au password
-    next();
-  });
+  const salt = await bcrypt.genSalt();    //bcrypt genere le salage
+  this.password = await bcrypt.hash(this.password, salt); //Ajout du cryptage au password
+  next();
+});
+
+//  Compare le hash via bcrypt
+userSchema.statics.login = async function(email, password) {
+  //  recherche le user via son email
+  const user = await this.findOne({ email });
+  if (user) {
+    // compare le crypt du password du user et du password de la req
+    const auth = await bcrypt.compare(password, user.password);
+    if (auth) {
+      return user;
+    }
+    throw Error('incorrect password'); // Erreur password
+  }
+  throw Error('incorrect email') // Erreur email
+};
 
 //  Utilisateur
 const UserModel = mongoose.model("user", userSchema);

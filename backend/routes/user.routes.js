@@ -2,8 +2,10 @@ const router = require('express').Router();
 const authController = require('../controllers/auth.controller');
 const userController = require('../controllers/user.controller');
 
-//  Routes: Inscription et connexion
+//  Routes: Inscription et connexion/déconnexion
 router.post("/register", authController.signUp)
+router.post("/login", authController.signIn);
+router.get("/logout", authController.logout);
 
 //  Routes: Crud user
 router.get("/", userController.getAllUsers);
