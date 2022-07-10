@@ -1,4 +1,6 @@
-//  Gére les cas d'erreurs a l'inscription
+//  Les différent cas d'erreurs renvoyer au client
+
+//   Erreur lors l'inscription
 module.exports.signUpErrors = (err) => {
     let errors = { pseudo: '', email: '', password: '' };
 //  Erreur sur le pseudo
@@ -20,7 +22,7 @@ module.exports.signUpErrors = (err) => {
     return errors
 }
 
-//  Gére les erreurs de connection
+//  Erreurs à la connection
 module.exports.signIpErrors = (err) => {
     let errors = { email: '', password: '' };
 // Erreur email
@@ -31,4 +33,17 @@ module.exports.signIpErrors = (err) => {
       errors.password = "Mot de passe incorrect";
 
     return errors
+}
+
+//  Erreur lors d'envoi d'image de profil
+module.exports.uploadErrors = (err) => {
+  let errors = { format: "", maxSize: "" };
+
+  if (err.message.include('invalid format'))
+    errors.format = "Format incompatible";
+  
+  if (err.message.include('max size'))
+    errors.format = "Le fichier dépasse 500 ko";
+  
+  return errors
 }
