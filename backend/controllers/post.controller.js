@@ -1,7 +1,11 @@
 const postModel = require('../models/post.model');
 const PostModel = require('../models/post.model');
 const UserModel = require('../models/user.model');
+const { uploadErrors } = require('../utils/errors.utils');
 const ObjectID = require('mongoose').Types.ObjectId;
+const fs = require('fs');
+const { promisify } = require('util');
+const pipeline = promisify(require('stream').pipeline);
 
 //  Lire les posts
 module.exports.readPost = (req, res) => {
@@ -13,10 +17,40 @@ module.exports.readPost = (req, res) => {
 
 //  Créer un post
 module.exports.createPost = async (req, res) => {
+  //  Ajout d'image dans un post à ajuster
+  let fileName = "";
+  if (req.file !== null) {
+    try {
+      //  erreur de format
+          if (
+              req.file.detectedMimeType != 'image/jpg' &&
+              req.file.detectedMimeType != 'image/png' &&
+              req.file.detectedMimeType != 'image/jpeg'
+          )
+          throw Error('invalid file');
+  // max size accepter
+          if (req.file.size > 500000) throw Error('max size');
+      } catch (err) {
+          const errors = uploadErrors(err)
+          return res.status(201).json({ errors });
+      }
+      const fileName = req.body.posterId + Date.now() + '.jpg'; 
+
+//  Destination
+    await pipeline(
+      req.file.stream,
+      fs.createWriteStream(
+          `${__dirname}/../client/public/uploads/post/${fileName}`
+      )
+  );
+  }
+
+
   const newPost = new postModel({
     posterId: req.body.posterId,
-    pseudo: req.body.pseudo,
+    //  pseudo: req.body.pseudo,
     message: req.body.message,
+    picture: req.file !== null ? "./uploads/posts" + fileName : "",
     video: req.body.video,
     likers: [],
     comments: [],
