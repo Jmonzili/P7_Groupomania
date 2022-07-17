@@ -73,7 +73,7 @@ module.exports.likePost = async (req, res) => {
       { new: true }
     )
       .then((data) => res.send(data))
-      .catch((err) => res.status(500).send('error 1:' + err));
+      .catch((err) => res.status(500).send({ message: err }));
     await UserModel.findByIdAndUpdate(
       req.body.id,
       {
@@ -81,12 +81,91 @@ module.exports.likePost = async (req, res) => {
       },
       { new: true }
     )
-      .then((data2) => res.send(data2))
-      .catch((err) => res.status(500).send('error 2:' + err));
+      .then((data) => res.send(data))
+      .catch((err) => res.status(500).send({ message: err }));
   } catch (err) {
-    return res.status(400).send('error 3:' + err);
+    return res.status(400).send(err);
   }
 };
 
 //  Annule le like d'un post
-module.exports.unLikePost = async (req, res) => {};
+module.exports.unLikePost = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id))
+    return res.status(400).send('ID unknown : ' + req.params.id);
+
+  try {
+    await PostModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        $pull: { likers: req.body.id },
+      },
+      { new: true }
+    )
+      .then((data) => res.send(data))
+      .catch((err) => res.status(500).send({ message: err }));
+
+    await UserModel.findByIdAndUpdate(
+      req.body.id,
+      {
+        $pull: { likes: req.params.id },
+      },
+      { new: true }
+    )
+      .then((data) => res.send(data))
+      .catch((err) => res.status(500).send({ message: err }));
+  } catch (err) {
+    return res.status(400).send(err);
+  }
+};
+
+//  Commenter un post  Fonction a travailer
+module.exports.commentPost = (req, res) => {
+  if (!ObjectID.isValid(req.params.id))
+    return res.status(400).send('ID unknown : ' + req.params.id);
+  console.log('req.body comment:', req.body);
+
+  try {
+    return PostModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        $push: {
+          comments: {
+            commenterId: req.body.commenterId,
+            commenterName: req.body.commenterName,
+            text: req.body.text,
+            timestamp: new Date().getTime(),
+          },
+        },
+      },
+      { new: true }
+    )
+      .then((data) => res.send(data))
+      .catch((err) => res.status(500).send({ message: err }));
+  } catch (err) {
+    return res.status(400).send(err);
+  }
+};
+
+//  Supprimer un commentaire
+module.exports.deleteCommentPost = (req, res) => {
+  if (!ObjectID.isValid(req.params.id))
+    return res.status(400).send('ID unknown : ' + req.params.id);
+
+  try {
+    return PostModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        $pull: {
+          comments: {
+            _id: req.body.commentId,
+          },
+        },
+      },
+      { new: true }
+    )
+      .then((data) => res.send(data))
+      .catch((err) => res.status(500).send({ message: err }));
+  } catch (err) {
+    return res.status(400).send(err);
+  }
+};
