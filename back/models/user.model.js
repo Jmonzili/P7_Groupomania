@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const { isEmail } = require('validator');
-const bcrypt = require('bcrypt');
 
 //  Contenu d'un Utilisateur
 const userSchema = new mongoose.Schema(
@@ -16,19 +15,19 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      max: 1024,
-      minlength: 6,
+      minLength: 6,
+      maxLength: 1024,
     },
     prenom: {
       type: String,
-      minLength: 3,
-      maxLength: 55,
+      minlength: 3,
+      maxlength: 55,
       trim: true,
     },
     nom: {
       type: String,
-      minLength: 3,
-      maxLength: 55,
+      minlength: 3,
+      maxlength: 55,
       trim: true,
     },
     picture: {
@@ -49,13 +48,6 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-//  Cryptage du mot de passe avec bcrypt avant l'envoi des data
-userSchema.pre('save', async function (next) {
-  const salt = await bcrypt.genSalt(); //bcrypt genere le salage
-  this.password = await bcrypt.hash(this.password, salt); //Ajout du cryptage au password
-  next();
-});
 
 //  Utilisateur
 const UserModel = mongoose.model('user', userSchema);
